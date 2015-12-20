@@ -33,7 +33,7 @@ current_dir = os.path.dirname(__file__)
 
 def get_subdirs(current_dir):
     for f in os.listdir(current_dir):
-        if f == '__pycache__':
+        if f in {'__pycache__', '.git'}:
             continue
 
         joined = os.path.join(current_dir, f)

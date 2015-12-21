@@ -11,28 +11,25 @@ bl_info = {
     "category": "Text Editor"
 }
 
+import itertools
 import os
 import bpy
+from bpy_extras.io_utils import ExportHelper
 
 
-def sanitize_filename(pyfile):
-    return pyfile.replace('_', ' ').replace('.py', '')
+''' consumeables, variables '''
 
-
-class XTemplatesLoader(bpy.types.Operator):
-
-    bl_idname = 'wm.script_template_loader'
-    bl_label = 'load templates into TE'
-
-    script_path = bpy.props.StringProperty(default='')
-
-    def execute(self, context):
-        if self.script_path:
-            bpy.ops.text.open(filepath=self.script_path, internal=True)
-        return {'FINISHED'}
-
-
+xtemp_classes = []
+submenus = []
+subdict = {}
 current_dir = os.path.dirname(__file__)
+
+
+''' utility functions '''
+
+
+def sanitize_name(pyfile):
+    return pyfile.replace('_', ' ').replace('.py', '')
 
 
 def get_subdirs(current_dir):
@@ -60,31 +57,102 @@ def make_menu(name, draw):
     return type(name, (bpy.types.Menu,), overwrites)
 
 
-submenus = []
-subdict = {}
+''' UI classes / Operators / Preferences '''
 
-for subdir in get_subdirs(current_dir):
 
-    submenu_name = os.path.basename(subdir)
-    subdict[submenu_name] = []
+class XTemplatesDirectorySelector(bpy.types.Operator, ExportHelper):
+    ''' this is used on the button beside the string box in user prefs '''
 
-    for pyfile in path_iterator(subdir):
-        pyfile_path = os.path.join(subdir, pyfile)
-        subdict[submenu_name].append([submenu_name, pyfile, pyfile_path])
+    bl_idname = "wm.xtemplates_folder_selector"
+    bl_label = "some folder"
 
-    if not subdict[submenu_name]:
-        continue
+    filename_ext = ''
+    use_filter_folder = True
 
-    def sub_draw(self, context):
+    def execute(self, context):
+        # even if you pick a file i'll strip it and get the dirname
+        fdir = self.properties.filepath
+        dp = os.path.dirname(fdir)
+
+        try:
+            addon = bpy.context.user_preferences.addons.get(__name__)
+            if addon:
+                prefs = addon.preferences
+                prefs['full_directory'] = dp
+
+                global submenus
+
+                # this pops current menus
+                for menu in reversed(submenus):
+                    bpy.utils.unregister_class(menu)
+                    del menu
+
+                # this builds up new menus
+                submenus = []
+                current_dir = dp
+                make_subdirs(current_dir)
+
+                for menu in submenus:
+                    bpy.utils.register_class(menu)
+
+        except:
+            XK = 'add-on not registered yet.. reload with f8'
+            self.report({'INFO'}, XK)
+
+        return {'FINISHED'}
+
+
+class XTemplatesPreferences(bpy.types.AddonPreferences):
+
+    bl_idname = __name__
+
+    full_directory = bpy.props.StringProperty(name="")
+
+    def draw(self, context):
         layout = self.layout
-        t = "wm.script_template_loader"
-        this_menu_name = self.bl_idname.replace("TEXT_MT_xtemplates_", "")
-        for _, _pyfile, _path in subdict[this_menu_name]:
-            file_name_to_show = sanitize_filename(_pyfile)
-            layout.operator(t, text=file_name_to_show).script_path = _path
+        row = layout.row()
+        row.prop(self, "full_directory", text="")
+        row.operator("wm.xtemplates_folder_selector", icon="FILE_FOLDER", text="")
 
-    dynamic_class = make_menu(submenu_name, sub_draw)
-    submenus.append(dynamic_class)
+
+class XTemplatesLoader(bpy.types.Operator):
+
+    bl_idname = 'wm.script_template_loader'
+    bl_label = 'load templates into TE'
+
+    script_path = bpy.props.StringProperty(default='')
+
+    def execute(self, context):
+        if self.script_path:
+            bpy.ops.text.open(filepath=self.script_path, internal=True)
+        return {'FINISHED'}
+
+
+def make_subdirs(current_dir):
+    for subdir in get_subdirs(current_dir):
+
+        submenu_name = os.path.basename(subdir)
+        subdict[submenu_name] = []
+
+        for pyfile in path_iterator(subdir):
+            pyfile_path = os.path.join(subdir, pyfile)
+            subdict[submenu_name].append([submenu_name, pyfile, pyfile_path])
+
+        if not subdict[submenu_name]:
+            continue
+
+        def sub_draw(self, context):
+            layout = self.layout
+            t = "wm.script_template_loader"
+            this_menu_name = self.bl_idname.replace("TEXT_MT_xtemplates_", "")
+            for _, _pyfile, _path in subdict[this_menu_name]:
+                file_name_to_show = sanitize_name(_pyfile)
+                layout.operator(t, text=file_name_to_show).script_path = _path
+
+        dynamic_class = make_menu(submenu_name, sub_draw)
+        submenus.append(dynamic_class)
+
+make_subdirs(current_dir)
 
 
 def get_submenu_names():
@@ -98,24 +166,26 @@ class XTemplatesHeadMenu(bpy.types.Menu):
 
     def draw(self, context):
         for name, long_name in get_submenu_names():
-            self.layout.menu(long_name, text=name.replace('_', ' '))
+            self.layout.menu(long_name, text=sanitize_name(name))
 
 
 def menu_draw(self, context):
     self.layout.menu("TEXT_MT_xtemplates_headmenu")
 
+xtemp_classes.append(XTemplatesDirectorySelector)
+xtemp_classes.append(XTemplatesPreferences)
+xtemp_classes.append(XTemplatesLoader)
+xtemp_classes.append(XTemplatesHeadMenu)
+
 
 def register():
-    for menu in submenus:
+    for menu in itertools.chain.from_iterable([submenus, xtemp_classes]):
         bpy.utils.register_class(menu)
-    bpy.utils.register_class(XTemplatesLoader)
-    bpy.utils.register_class(XTemplatesHeadMenu)
     bpy.types.TEXT_MT_templates.append(menu_draw)
 
 
 def unregister():
     bpy.types.TEXT_MT_templates.remove(menu_draw)
-    bpy.utils.unregister_class(XTemplatesHeadMenu)
-    bpy.utils.unregister_class(XTemplatesLoader)
-    for menu in reversed(submenus):
+    items = list(itertools.chain.from_iterable([submenus, xtemp_classes]))
+    for menu in reversed(items):
         bpy.utils.unregister_class(menu)

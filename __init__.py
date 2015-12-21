@@ -15,6 +15,10 @@ import os
 import bpy
 
 
+def sanitize_filename(pyfile):
+    return pyfile.replace('_', ' ').replace('.py', '')
+
+
 class XTemplatesLoader(bpy.types.Operator):
 
     bl_idname = 'wm.script_template_loader'
@@ -76,7 +80,8 @@ for subdir in get_subdirs(current_dir):
         t = "wm.script_template_loader"
         this_menu_name = self.bl_idname.replace("TEXT_MT_xtemplates_", "")
         for _, _pyfile, _path in subdict[this_menu_name]:
-            layout.operator(t, text=_pyfile).script_path = _path
+            file_name_to_show = sanitize_filename(_pyfile)
+            layout.operator(t, text=file_name_to_show).script_path = _path
 
     dynamic_class = make_menu(submenu_name, sub_draw)
     submenus.append(dynamic_class)
@@ -93,7 +98,7 @@ class XTemplatesHeadMenu(bpy.types.Menu):
 
     def draw(self, context):
         for name, long_name in get_submenu_names():
-            self.layout.menu(long_name, text=name)
+            self.layout.menu(long_name, text=name.replace('_', ' '))
 
 
 def menu_draw(self, context):

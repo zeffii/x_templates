@@ -7,6 +7,6 @@ add your own templates and folders.
 
 ### todo
 
-- [ ] make user preferences for basefolder, instead of hardcoded add-on folder
 - [x] arrange top level menus (the ones created by folders) alphabetically
-- [ ] remove underscores and .py, perhaps ..if it bugs me enough.
+- [x] remove underscores and .py, perhaps ..if it bugs me enough.
+- [ ] make user preferences for basefolder, instead of hardcoded add-on folder

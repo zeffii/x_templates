@@ -80,12 +80,24 @@ class XTemplatesDirectorySelector(bpy.types.Operator, ExportHelper):
                 prefs = addon.preferences
                 prefs['full_directory'] = dp
 
+                # here be dragons.
+
                 global submenus
 
                 # this pops current menus
+                print(submenus)
                 for menu in reversed(submenus):
                     bpy.utils.unregister_class(menu)
                     del menu
+                bpy.utils.unregister_class(XTemplatesHeadMenu)
+
+                del XTemplatesHeadMenu
+
+                def modified_draw(self, context):
+                    for name, long_name in get_submenu_names():
+                        self.layout.menu(long_name, text=sanitize_name(name))
+
+                XTemplatesHeadMenu = make_menu("headmenu", modified_draw)
 
                 # this builds up new menus
                 submenus = []
@@ -94,6 +106,10 @@ class XTemplatesDirectorySelector(bpy.types.Operator, ExportHelper):
 
                 for menu in submenus:
                     bpy.utils.register_class(menu)
+                bpy.utils.register_class(XTemplatesHeadMenu)
+
+            else:
+                print('no addon data found')
 
         except:
             XK = 'add-on not registered yet.. reload with f8'
@@ -158,13 +174,19 @@ def get_submenu_names():
         yield k, 'TEXT_MT_xtemplates_' + k
 
 
-class XTemplatesHeadMenu(bpy.types.Menu):
-    bl_idname = "TEXT_MT_xtemplates_headmenu"
-    bl_label = "x templates"
+# class XTemplatesHeadMenu(bpy.types.Menu):
+#     bl_idname = "TEXT_MT_xtemplates_headmenu"
+#     bl_label = "x templates"
+#     def draw(self, context):
+#         for name, long_name in get_submenu_names():
+#             self.layout.menu(long_name, text=sanitize_name(name))
 
-    def draw(self, context):
-        for name, long_name in get_submenu_names():
-            self.layout.menu(long_name, text=sanitize_name(name))
+def sub_draw(self, context):
+    for name, long_name in get_submenu_names():
+        self.layout.menu(long_name, text=sanitize_name(name))
+
+
+XTemplatesHeadMenu = make_menu("headmenu", sub_draw)
 
 
 def menu_draw(self, context):

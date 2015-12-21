@@ -1,7 +1,7 @@
 # x_templates
 nested folders for b3d TextEditor templates list
 
-![image](https://cloud.githubusercontent.com/assets/619340/11919295/c343c1aa-a74e-11e5-9b92-277b2964ca45.png)
+![image](https://cloud.githubusercontent.com/assets/619340/11928785/8269dad8-a7d6-11e5-81d7-9dd6af7ae3ba.png)
 
 add your own templates and folders.
 

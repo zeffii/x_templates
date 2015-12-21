@@ -57,6 +57,15 @@ def make_menu(name, draw):
     return type(name, (bpy.types.Menu,), overwrites)
 
 
+def make_menu2(name, draw):
+    overwrites = {
+        'bl_idname': 'TEXT_MT_xtemplates_' + name,
+        'bl_label': "x templates",
+        'draw': draw,
+    }
+    return type(name, (bpy.types.Menu,), overwrites)
+
+
 ''' UI classes / Operators / Preferences '''
 
 
@@ -85,11 +94,11 @@ class XTemplatesDirectorySelector(bpy.types.Operator, ExportHelper):
                 global submenus
 
                 # this pops current menus
-                print(submenus)
+                bpy.utils.unregister_class(XTemplatesHeadMenu)
+                # print(submenus)
                 for menu in reversed(submenus):
                     bpy.utils.unregister_class(menu)
-                    del menu
-                bpy.utils.unregister_class(XTemplatesHeadMenu)
+                    # del menu
 
                 del XTemplatesHeadMenu
 
@@ -97,7 +106,7 @@ class XTemplatesDirectorySelector(bpy.types.Operator, ExportHelper):
                     for name, long_name in get_submenu_names():
                         self.layout.menu(long_name, text=sanitize_name(name))
 
-                XTemplatesHeadMenu = make_menu("headmenu", modified_draw)
+                XTemplatesHeadMenu = make_menu2("headmenu", modified_draw)
 
                 # this builds up new menus
                 submenus = []

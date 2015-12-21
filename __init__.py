@@ -83,7 +83,7 @@ for subdir in get_subdirs(current_dir):
 
 
 def get_submenu_names():
-    for k, v in subdict.items():
+    for k, v in sorted(subdict.items()):
         yield k, 'TEXT_MT_xtemplates_' + k
 
 

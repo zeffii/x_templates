@@ -5,8 +5,13 @@ nested folders for b3d TextEditor templates list
 
 add your own templates and folders.
 
+### features
+
+- dynamically creates menu items and sub menus by inspecting the content of a given folder
+- arranges top level menus (the ones created by folders) alphabetically
+- removes underscores and .py extension.
+
+
 ### todo
 
-- [x] arrange top level menus (the ones created by folders) alphabetically
-- [x] remove underscores and .py, perhaps ..if it bugs me enough.
 - [ ] make user preferences for basefolder, instead of hardcoded add-on folder

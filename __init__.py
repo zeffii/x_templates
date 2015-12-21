@@ -152,8 +152,6 @@ def make_subdirs(current_dir):
         dynamic_class = make_menu(submenu_name, sub_draw)
         submenus.append(dynamic_class)
 
-make_subdirs(current_dir)
-
 
 def get_submenu_names():
     for k, v in sorted(subdict.items()):
@@ -179,6 +177,20 @@ xtemp_classes.append(XTemplatesHeadMenu)
 
 
 def register():
+
+    try:
+        addon = bpy.context.user_preferences.addons.get(__name__)
+        if addon:
+            prefs = addon.preferences
+            user_dir = prefs['full_directory']
+            make_subdirs(user_dir)
+            print('xtemplates: using custom directory')
+        else:
+            print('addon prefs not found yet')
+    except:
+        print('xtemplates: using default directory')
+        make_subdirs(current_dir)
+
     for menu in itertools.chain.from_iterable([submenus, xtemp_classes]):
         bpy.utils.register_class(menu)
     bpy.types.TEXT_MT_templates.append(menu_draw)

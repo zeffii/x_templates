@@ -15,23 +15,6 @@ import os
 import bpy
 
 
-def sanitize_filename(pyfile):
-    return pyfile.replace('_', ' ').replace('.py', '')
-
-
-class XTemplatesLoader(bpy.types.Operator):
-
-    bl_idname = 'wm.script_template_loader'
-    bl_label = 'load templates into TE'
-
-    script_path = bpy.props.StringProperty(default='')
-
-    def execute(self, context):
-        if self.script_path:
-            bpy.ops.text.open(filepath=self.script_path, internal=True)
-        return {'FINISHED'}
-
-
 current_dir = os.path.dirname(__file__)
 
 
@@ -41,17 +24,22 @@ def get_subdirs(current_dir):
             continue
 
         joined = os.path.join(current_dir, f)
+
         if os.path.isdir(joined):
+
+            # skip empty dirs
+            if os.listdir(joined) == []:
+                continue
+
             yield joined
 
 
-def path_iterator(path_name):
-    for fp in os.listdir(path_name):
-        if fp.endswith(".py") and not (fp == '__init__.py'):
-            yield fp
+def make_menu(name, path):
 
+    def draw(self, context):
+        layout = self.layout
+        self.path_menu([path], "text.open", {"internal": True})
 
-def make_menu(name, draw):
     overwrites = {
         'bl_idname': 'TEXT_MT_xtemplates_' + name,
         'bl_label': name,
@@ -61,34 +49,19 @@ def make_menu(name, draw):
 
 
 submenus = []
-subdict = {}
+menu_names = []
 
 for subdir in get_subdirs(current_dir):
 
     submenu_name = os.path.basename(subdir)
-    subdict[submenu_name] = []
+    menu_names.append(submenu_name)
 
-    for pyfile in path_iterator(subdir):
-        pyfile_path = os.path.join(subdir, pyfile)
-        subdict[submenu_name].append([submenu_name, pyfile, pyfile_path])
-
-    if not subdict[submenu_name]:
-        continue
-
-    def sub_draw(self, context):
-        layout = self.layout
-        t = "wm.script_template_loader"
-        this_menu_name = self.bl_idname.replace("TEXT_MT_xtemplates_", "")
-        for _, _pyfile, _path in subdict[this_menu_name]:
-            file_name_to_show = sanitize_filename(_pyfile)
-            layout.operator(t, text=file_name_to_show).script_path = _path
-
-    dynamic_class = make_menu(submenu_name, sub_draw)
+    dynamic_class = make_menu(submenu_name, subdir)
     submenus.append(dynamic_class)
 
 
 def get_submenu_names():
-    for k, v in sorted(subdict.items()):
+    for k in sorted(menu_names):
         yield k, 'TEXT_MT_xtemplates_' + k
 
 
@@ -108,7 +81,7 @@ def menu_draw(self, context):
 def register():
     for menu in submenus:
         bpy.utils.register_class(menu)
-    bpy.utils.register_class(XTemplatesLoader)
+
     bpy.utils.register_class(XTemplatesHeadMenu)
     bpy.types.TEXT_MT_templates.append(menu_draw)
 
@@ -116,6 +89,6 @@ def register():
 def unregister():
     bpy.types.TEXT_MT_templates.remove(menu_draw)
     bpy.utils.unregister_class(XTemplatesHeadMenu)
-    bpy.utils.unregister_class(XTemplatesLoader)
+
     for menu in reversed(submenus):
         bpy.utils.unregister_class(menu)

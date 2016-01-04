@@ -25,12 +25,8 @@ def get_subdirs(current_dir):
 
         joined = os.path.join(current_dir, f)
 
-        if os.path.isdir(joined):
-
-            # skip empty dirs
-            if os.listdir(joined) == []:
-                continue
-
+        # is dir and has content
+        if os.path.isdir(joined) and os.listdir(joined):
             yield joined
 
 
@@ -40,12 +36,9 @@ def make_menu(name, path):
         layout = self.layout
         self.path_menu([path], "text.open", {"internal": True})
 
-    overwrites = {
-        'bl_idname': 'TEXT_MT_xtemplates_' + name,
-        'bl_label': name,
-        'draw': draw,
-    }
-    return type(name, (bpy.types.Menu,), overwrites)
+    folder_name = 'TEXT_MT_xtemplates_' + name
+    attributes = dict(bl_idname=folder_name, bl_label=name, draw=draw)
+    return type(name, (bpy.types.Menu,), attributes)
 
 
 submenus = []

@@ -34,6 +34,7 @@ def make_menu(name, path):
 
     def draw(self, context):
         layout = self.layout
+        print([path])
         self.path_menu([path], "text.open", {"internal": True})
 
     folder_name = 'TEXT_MT_xtemplates_' + name

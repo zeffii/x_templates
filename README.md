@@ -15,3 +15,4 @@ add your own templates and folders.
 ### todo
 
 - [ ] make user preferences for basefolder, instead of hardcoded add-on folder
+- [ ] blabbitybla

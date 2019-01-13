@@ -14,5 +14,6 @@ add your own templates and folders.
 
 ### todo
 
+- [x] 2.8 support only
 - [ ] make user preferences for basefolder, instead of hardcoded add-on folder
 - [ ] blabbitybla

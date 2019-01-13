@@ -2,7 +2,7 @@ bl_info = {
     "name": "x templates",
     "author": "Dealga McArdle",
     "version": (0, 1),
-    "blender": (2, 7, 6),
+    "blender": (2, 80, 0),
     "location": "",
     "description": "",
     "warning": "",

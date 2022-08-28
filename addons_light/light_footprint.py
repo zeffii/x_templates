@@ -37,12 +37,12 @@ class LayoutDemoPanel(bpy.types.Panel):
 
 
 def register():
-    bpy.utils.register_module(__name__)
+    bpy.utils.register_class(__name__)
 
 
 def unregister():
     bpy.utils.unregister_class(__name__)
 
 
-if __name__ == "__main__":
-    register()
+# if __name__ == "__main__":
+#     register()
